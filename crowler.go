@@ -26,8 +26,16 @@ type Accuweather struct {
     Date time.Time
 }
 
+type Temperature struct {
+    Id          int
+    Date        time.Time
+    Source      int
+    Value       int
+}
+
 type Temperaturer interface {
     Temperature() (int, error)
+    Save() (int64, error)
 }
 
 func (a *Accuweather) Temperature() (int, error) {
@@ -79,19 +87,36 @@ func (a Accuweather) String() (string) {
     return a.Date.Format(time.RFC822) + " - " + a.Resource_name + " " + strconv.Itoa(a.Temp) + " °C"
 }
 
-func (*a Accuweather) Save(orm) (int) {
-    
+func (a *Accuweather) Save() (int64, error) {
+    var temp Temperature
+    o := orm.NewOrm()
+    temp.Source = 2
+    temp.Date = a.Date
+    temp.Value = a.Temp
+
+    id, err := o.Insert(&temp)
+    if err != nil {
+        log.Println(err)
+    }
+    return id, err
+}
+
+func (g *Gismeteo) Save() (int64, error) {
+    var temp Temperature
+    o := orm.NewOrm()
+    temp.Source = 1
+    temp.Date = g.Date
+    temp.Value = g.Temp
+
+    id, err := o.Insert(&temp)
+    if err != nil {
+        log.Println(err)
+    }
+    return id, err
 }
 
 func (g Gismeteo) String() (string) {
     return g.Date.Format(time.RFC822) + " - " + g.Resource_name + " " + strconv.Itoa(g.Temp) + " °C"
-}
-
-type Temperature struct {
-    Id          int
-    Date        time.Time
-    Source      int
-    Value       int
 }
 
 func init() {
@@ -119,47 +144,22 @@ func main() {
     if err != nil {
         log.Println(err)
     }
-    /*
-    t := Temperature{Id: 2}
 
-    err = o.Read(&t)
-    
-    if err == orm.ErrNoRows {
-        log.Println("No result found.")
-    } else if err == orm.ErrMissPK {
-        log.Println("No primary key found.")
-    } else {
-        log.Println(t.Id, t.Value)
-    }
-    */
     a := Accuweather{Resource_name: "www.accuweather.com", Url: "http://www.accuweather.com/ru/ru/saratov/295382/current-weather/295382"}
-    //a.Temperature()
+    a.Temperature()
     log.Print(a)
+    _, err = a.Save()
+
+    if err != nil {
+        log.Println(err)
+    }
 
     g := Gismeteo{Resource_name: "www.gismeteo.ru", Url: "http://www.gismeteo.ru/city/daily/5032/"}
-    //g.Temperature()
+    g.Temperature()
     log.Print(g)
-    
-    var temp Temperature
-    temp.Source = 1
-    temp.Date = g.Date
-    temp.Value = g.Temp
+    _, err = g.Save()
 
-    id, err := o.Insert(&temp)
-    if err == nil {
-        log.Println(id)
-    } else {
-        log.Print(id)
-    }
-
-    temp.Source = 2
-    temp.Date = a.Date
-    temp.Value = a.Temp
-
-    id, err = o.Insert(&temp)
-    if err == nil {
-        log.Println(id)
-    } else {
-        log.Print(id)
+    if err != nil {
+        log.Println(err)
     }
 }
