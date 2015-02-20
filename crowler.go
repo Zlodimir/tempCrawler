@@ -79,6 +79,10 @@ func (a Accuweather) String() (string) {
     return a.Date.Format(time.RFC822) + " - " + a.Resource_name + " " + strconv.Itoa(a.Temp) + " °C"
 }
 
+func (*a Accuweather) Save(orm) (int) {
+    
+}
+
 func (g Gismeteo) String() (string) {
     return g.Date.Format(time.RFC822) + " - " + g.Resource_name + " " + strconv.Itoa(g.Temp) + " °C"
 }
@@ -129,11 +133,11 @@ func main() {
     }
     */
     a := Accuweather{Resource_name: "www.accuweather.com", Url: "http://www.accuweather.com/ru/ru/saratov/295382/current-weather/295382"}
-    a.Temperature()
+    //a.Temperature()
     log.Print(a)
 
     g := Gismeteo{Resource_name: "www.gismeteo.ru", Url: "http://www.gismeteo.ru/city/daily/5032/"}
-    g.Temperature()
+    //g.Temperature()
     log.Print(g)
     
     var temp Temperature
